@@ -14,8 +14,7 @@ namespace LocalizationWithCaching.Controllers
 {
     public class HomeController : Controller
     {
-        //
-        // GET: /Home/
+
 
 
         public string GetCount()
