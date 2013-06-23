@@ -40,18 +40,6 @@ namespace LocalizationWithCaching.Models
             set { _ck = value; }
         }
 
-        //public virtual int ProductId
-        //{
-        //    get { return ProductLanguageCompositeKey.ProductId; }
-        //    set { ProductLanguageCompositeKey.ProductId = value; }
-        //}
-
-        //public virtual string LanguageCode
-        //{
-        //    get { return ProductLanguageCompositeKey.LanguageCode; }
-        //    set { ProductLanguageCompositeKey.LanguageCode = value; }
-        //}
-
 
         public ProductLanguage()
         {
