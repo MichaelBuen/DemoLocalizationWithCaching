@@ -33,17 +33,13 @@ namespace LocalizationWithCaching.Models
     {
 
 
-        private ProductLanguageCompositeKey _ck;
-        public virtual ProductLanguageCompositeKey ProductLanguageCompositeKey
-        {
-            get { return _ck; }
-            set { _ck = value; }
-        }
-
+        
+        public virtual ProductLanguageCompositeKey ProductLanguageCompositeKey { get; set; }
+        
 
         public ProductLanguage()
         {
-             _ck = new ProductLanguageCompositeKey();
+            this.ProductLanguageCompositeKey = new ProductLanguageCompositeKey();
         }
 
         public virtual string ProductName { get; set; }
