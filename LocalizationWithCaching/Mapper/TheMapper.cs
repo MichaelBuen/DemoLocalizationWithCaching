@@ -27,7 +27,9 @@ namespace LocalizationWithCaching.Mapper
             mapper.AddMappings(
                 new[]
 			    {
-					typeof(ProductMapping), typeof(ProductLanguageMapping)
+					typeof(ProductMapping), typeof(ProductLanguageMapping),
+                    typeof(GetOrdersInfoMapping)
+
 				});
 
 
@@ -41,12 +43,8 @@ namespace LocalizationWithCaching.Mapper
                 c.Dialect<NHibernate.Dialect.MsSql2012Dialect>();
                 c.ConnectionString = "Server=localhost; Database=good_db; Trusted_Connection=true;";
 
-
                 c.LogFormattedSql = true;
                 c.LogSqlInConsole = true;
-
-                
-                
             });
 
 
@@ -59,9 +57,12 @@ namespace LocalizationWithCaching.Mapper
                     // http://stackoverflow.com/questions/2365234/how-does-query-caching-improves-performance-in-nhibernate
                     
                     // Need to be explicitly turned on so the .Cacheable directive on Linq will work
+
+                    
+
                     x.UseQueryCache = true;
                 });
-
+            
             
             
 

@@ -16,17 +16,6 @@ namespace LocalizationWithCaching.Controllers
     {
 
 
-
-        public string GetCount()
-        {
-            using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
-            using (var tx = session.BeginTransaction().SetLanguage(session, "en"))
-            {
-                return session.Query<Product>().Cacheable().Count().ToString() + " " + session.Query<ProductLanguage>().Cacheable().Count().ToString();
-            }
-        }
-
-
         public ActionResult Index()
         {
             TestCachingSecond();
@@ -40,14 +29,13 @@ namespace LocalizationWithCaching.Controllers
         {            
             using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
             using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
-            {
-                // query first run. database roundtrip
+            {                
                 var query =
                             (from q in
                                  from p in session.Query<Product>()
                                  join l in session.Query<ProductLanguage>() on p.ProductId equals l.ProductLanguageCompositeKey.ProductId
                                  select new { p, l }
-                             where q.l.ProductLanguageCompositeKey.LanguageCode == languageCode
+                             // where q.l.ProductLanguageCompositeKey.LanguageCode == languageCode
                              select q).Cacheable();
 
                 var t = query.ToList();
@@ -58,28 +46,67 @@ namespace LocalizationWithCaching.Controllers
         {
             TestQueryCache("en"); // database hit
             TestQueryCache("zh"); // database hit
-            TestQueryCache("en"); // query cache cache hit
-            TestQueryCache("zh"); // query cache hit
-
-            TestProductEntityCache(productId: 1,languageCode: "en"); // cache hit
-            TestProductLanguageEntityCache(productId: 1, languageCode: "en"); // cache hit
-            TestProductEntityCache(productId: 2, languageCode: "zh"); // cache hit
-            TestProductLanguageEntityCache(productId: 2, languageCode: "en"); // cache hit
-
-            UpdateProduct(productId: 1, languageCode: "en"); // database hit. invalidates query cache, refresh entity cache
-            TestProductEntityCache(productId: 1, languageCode: "en"); // cache hit
+            TestQueryCache("en"); // cached query hit
+            TestQueryCache("zh"); // cached query hit
+            TestQueryCache("ca"); // database hit
             
-            UpdateProduct(productId: 1, languageCode: "en"); // database hit. invalidates query cache, refresh entity cache
-            TestQueryCache("en"); // database hit
-            TestQueryCache("en"); // query cache hit
+            TestTvfCache("en"); // database hit
+            TestTvfCache("en"); // cached query hit
+            TestTvfCache("zh"); // database hit
+            TestTvfCache("zh"); // cached query hit
+            
+            TestTvfCache("en"); // cached query hit
+            UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache
+            TestTvfCache("en"); // database hit
+            TestTvfCache("en"); // cached query hit
+            UpdateProductLanguage(productId: 1, languageCode: "en"); // database hit. refresh entity cache
+            TestTvfCache("en"); // database hit
+            TestTvfCache("en"); // cached query hit
 
-            // not in database, hence no entity cache can be cached by query. database hit
+
+            TestProductEntityCache(productId: 1,languageCode: "en"); // cached entity hit
+            TestProductLanguageEntityCache(productId: 1, languageCode: "en"); // cached entity hit
+            TestProductEntityCache(productId: 2, languageCode: "zh"); // cached entity hit
+            TestProductLanguageEntityCache(productId: 2, languageCode: "en"); // cached entity hit
+
+            UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache
+            TestProductEntityCache(productId: 1, languageCode: "en"); // cached entity hit
+
+            UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache. invalidates cached query
+            TestQueryCache("en"); // no cached query. database hit
+            TestQueryCache("en"); // cache query hit
+
+            UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache. invalidates cached query 
+            TestProductEntityCache(productId: 1, languageCode: "en"); // cached entity hit
+            TestQueryCache("en"); // no cached query. database hit
+             
+            
+            // cached entity hit
             TestProductLanguageEntityCache(productId: 1, languageCode: "ca");
-            // cache hit
-            TestProductLanguageEntityCache(productId: 1, languageCode: "ca"); 
             
-            
+            // database hit
+            TestProductLanguageEntityCache(productId: 1, languageCode: "es");
 
+            // cached entity hit
+            TestProductLanguageEntityCache(productId: 1, languageCode: "es");
+
+            // database hit. entity is cached
+            UpdateProductLanguage(productId: 1, languageCode: "es");
+            
+            // cached entity hit
+            TestProductLanguageEntityCache(productId: 1, languageCode: "es");
+
+        }
+
+        private void TestTvfCache(string languageCode)
+        {
+            using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
+            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
+            {
+                var x = session.Query<GetOrdersInfo>().Cacheable();
+
+                var l = x.ToList();
+            }
         }
 
         private void UpdateProductLanguage(int productId, string languageCode)
@@ -127,7 +154,14 @@ namespace LocalizationWithCaching.Controllers
         }
 
 
-
+        public string GetCount()
+        {
+            using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
+            using (var tx = session.BeginTransaction().SetLanguage(session, "en"))
+            {
+                return session.Query<Product>().Cacheable().Count().ToString() + " " + session.Query<ProductLanguage>().Cacheable().Count().ToString();
+            }
+        }
       
 
 
