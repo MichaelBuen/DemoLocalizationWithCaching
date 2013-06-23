@@ -13,8 +13,8 @@ namespace LocalizationWithCaching.ModelMappings
     {
         public GetOrdersInfoMapping()
         {
-            Table(string.Format("dbo.tvf_GetOrdersInfo({0})", MappingCommons.Context));            
-            
+            Table(string.Format("dbo.tvf_get_orders_info({0})", MappingCommons.Context));
+
             Cache(x => x.Usage(CacheUsage.ReadOnly));
 
             Synchronize(new[] { "product", ProductLanguageMapping.TableName });

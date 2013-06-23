@@ -32,6 +32,18 @@ when not matched then
         public ProductLanguageMapping()
         {            
             Table(TableName);
+
+
+            // Can also map the table like the following, better and faster. We just do the above to emphasize that even queries are identical
+            // but they have different filter from the session startup, each identical query will have their own cache:
+                // Table(string.Format("dbo.get_product_i18n({0})", ":lf.LanguageCode")); 
+            // Hence the following behavior:
+                // TestQueryCache("en"); // database hit
+                // TestQueryCache("zh"); // database hit
+                // TestQueryCache("en"); // cached query hit
+                // TestQueryCache("zh"); // cached query hit
+                // TestQueryCache("ca"); // database hit
+
             
             // Need to be turned on, so N+1 won't happen
             // http://stackoverflow.com/questions/8761249/how-do-i-make-nhibernate-cache-fetched-child-collections

@@ -25,23 +25,7 @@ namespace LocalizationWithCaching.Controllers
         }
 
 
-        void TestQueryCache(string languageCode)
-        {            
-            using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
-            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
-            {                
-                var query =
-                            (from q in
-                                 from p in session.Query<Product>()
-                                 join l in session.Query<ProductLanguage>() on p.ProductId equals l.ProductLanguageCompositeKey.ProductId
-                                 select new { p, l }
-                             // where q.l.ProductLanguageCompositeKey.LanguageCode == languageCode
-                             select q).Cacheable();
-
-                var t = query.ToList();
-            }
-        }
-
+        
         void TestCachingSecond()
         {
             TestQueryCache("en"); // database hit
@@ -59,7 +43,7 @@ namespace LocalizationWithCaching.Controllers
             UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache
             TestTvfCache("en"); // database hit
             TestTvfCache("en"); // cached query hit
-            UpdateProductLanguage(productId: 1, languageCode: "en"); // database hit. refresh entity cache
+            UpdateProductLanguage(productId: 1, languageCode: "zh"); // database hit. refresh entity cache
             TestTvfCache("en"); // database hit
             TestTvfCache("en"); // cached query hit
 
@@ -96,7 +80,26 @@ namespace LocalizationWithCaching.Controllers
             // cached entity hit
             TestProductLanguageEntityCache(productId: 1, languageCode: "es");
 
+            
+
         }
+
+        void TestQueryCache(string languageCode)
+        {
+            using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
+            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
+            {
+                var query =
+                            (from q in
+                                 from p in session.Query<Product>()
+                                 join l in session.Query<ProductLanguage>() on p.ProductId equals l.ProductLanguageCompositeKey.ProductId
+                                 select new { p, l }                             
+                             select q).Cacheable();
+
+                var t = query.ToList();
+            }
+        }
+
 
         private void TestTvfCache(string languageCode)
         {
