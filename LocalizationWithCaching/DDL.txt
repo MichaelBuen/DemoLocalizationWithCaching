@@ -72,7 +72,7 @@ as
 return 
 	select
 		op.ordered_product_id,
-		op.ordered_by, op.date_ordered, language_code = @language_code, pl.product_name, p.year_introduced, op.qty
+		op.ordered_by, op.date_ordered, pl.product_name, p.year_introduced, op.qty
 	from dbo.ordered_product op
 	join dbo.get_product_language(@language_code) pl on op.product_id = pl.product_id
 	join dbo.product p on op.product_id = p.product_id 
