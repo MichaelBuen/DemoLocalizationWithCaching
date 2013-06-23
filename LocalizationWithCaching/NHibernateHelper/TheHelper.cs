@@ -7,17 +7,21 @@ namespace LocalizationWithCaching.NHibernateHelper
 {
     public static class TheNHibernateHelper
     {
-        public static NHibernate.ITransaction SetLanguage(this NHibernate.ITransaction tx, NHibernate.ISession session, string languageCode)
+        public static NHibernate.ITransaction SetLanguage(this NHibernate.ITransaction tx, NHibernate.ISession session, string languageCode, bool readOnly = true)
         {
-            var cmd = session.Connection.CreateCommand();
-            tx.Enlist(cmd);
-            cmd.CommandType = System.Data.CommandType.StoredProcedure;
-            cmd.CommandText = "SetLanguage";
-            var prm = cmd.CreateParameter();
-            prm.ParameterName = "@LanguageCode";
-            prm.Value = languageCode;
-            cmd.Parameters.Add(prm);
-            cmd.ExecuteNonQuery();
+            if (!readOnly)
+            {
+
+                var cmd = session.Connection.CreateCommand();
+                tx.Enlist(cmd);
+                cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                cmd.CommandText = "SetLanguage";
+                var prm = cmd.CreateParameter();
+                prm.ParameterName = "@LanguageCode";
+                prm.Value = languageCode;
+                cmd.Parameters.Add(prm);
+                cmd.ExecuteNonQuery();
+            }
 
             session.EnableFilter("lf").SetParameter("LanguageCode", languageCode);
 

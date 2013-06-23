@@ -115,7 +115,7 @@ namespace LocalizationWithCaching.Controllers
         private void UpdateProductLanguage(int productId, string languageCode)
         {
             using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
-            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
+            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode, readOnly: false))
             {
                 var x = session.Get<ProductLanguage>(new ProductLanguageCompositeKey { ProductId = productId, LanguageCode = languageCode });
                 
@@ -138,7 +138,7 @@ namespace LocalizationWithCaching.Controllers
         private void UpdateProduct(int productId, string languageCode)
         {
             using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
-            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
+            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode, readOnly: false))
             {
                 var x = session.Get<Product>(productId);
                 x.YearIntroduced = x.YearIntroduced + 1;

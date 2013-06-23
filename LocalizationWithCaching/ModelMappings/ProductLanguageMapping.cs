@@ -27,16 +27,16 @@ when not matched then
 	values (src.product_id, src.language_code, src.product_name, src.product_description);", MappingCommons.Context);
 
         
-        public static string TableName = string.Format("dbo.get_product_i18n({0})", MappingCommons.Context);
+        public static string TableName = string.Format("dbo.get_product_i18n(:lf.LanguageCode)", MappingCommons.Context);
 
         public ProductLanguageMapping()
         {            
-            Table(TableName);
+            // Table(TableName);
 
 
             // Can also map the table like the following, better and faster. We just do the above to emphasize that even queries are identical
             // but they have different filter from the session startup, each identical query will have their own cache:
-                // Table(string.Format("dbo.get_product_i18n({0})", ":lf.LanguageCode")); 
+                Table(string.Format("dbo.get_product_i18n({0})", ":lf.LanguageCode")); 
             // Hence the following behavior:
                 // TestQueryCache("en"); // database hit
                 // TestQueryCache("zh"); // database hit
