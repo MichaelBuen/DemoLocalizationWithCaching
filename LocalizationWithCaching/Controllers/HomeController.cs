@@ -58,7 +58,7 @@ namespace LocalizationWithCaching.Controllers
 
             UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache. invalidates cached query
             TestQueryCache("en"); // no cached query. database hit
-            TestQueryCache("en"); // cache query hit
+            TestQueryCache("en"); // cached query hit
 
             UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache. invalidates cached query 
             TestProductEntityCache(productId: 1, languageCode: "en"); // cached entity hit

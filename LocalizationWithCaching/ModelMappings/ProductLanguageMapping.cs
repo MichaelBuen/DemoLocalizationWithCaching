@@ -60,9 +60,6 @@ when not matched then
                     m.Property(x => x.LanguageCode, c => c.Column("language_code"));
                 });
 
-            //Property(x => x.ProductId, c => c.Column("product_id"));
-            //Property(x => x.LanguageCode, c => c.Column("language_code"));
-
             SqlInsert(save);
             SqlUpdate(save);
 
