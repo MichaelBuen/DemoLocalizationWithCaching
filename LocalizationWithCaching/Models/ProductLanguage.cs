@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
 
 namespace LocalizationWithCaching.Models
 {
@@ -32,8 +29,6 @@ namespace LocalizationWithCaching.Models
     public class ProductLanguage
     {
 
-
-        
         public virtual ProductLanguageCompositeKey ProductLanguageCompositeKey { get; set; }
         
 
@@ -45,5 +40,7 @@ namespace LocalizationWithCaching.Models
         public virtual string ProductName { get; set; }
         public virtual string ProductDescription { get; set; }
 
+        // A guide for the user, so he/she could know the source language of the untranslated string
+        public virtual string ActualLanguageCode { get; set; }
     }
 }

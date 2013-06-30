@@ -27,13 +27,16 @@ namespace LocalizationWithCaching.Mapper
             mapper.AddMappings(
                 new[]
 			    {
-					typeof(ProductMapping), typeof(ProductLanguageMapping),
-                    typeof(GetOrdersInfoMapping)
+                    // Entities
+					typeof(ProductMapping), 
+                    typeof(ProductLanguageMapping),
+                    typeof(OrderedProductMapping),
+                    
 
+                    // TVFs
+                    typeof(GetOrdersInfoMapping), 
+                    typeof(GetProductSoldMapping)
 				});
-
-
-
 
 
 
@@ -41,7 +44,7 @@ namespace LocalizationWithCaching.Mapper
             {
                 c.Driver<NHibernate.Driver.Sql2008ClientDriver>();
                 c.Dialect<NHibernate.Dialect.MsSql2012Dialect>();
-                c.ConnectionString = "Server=localhost; Database=good_db; Trusted_Connection=true;";
+                c.ConnectionString = "Server=localhost; Database=good_db_x; Trusted_Connection=true;";
 
                 c.LogFormattedSql = true;
                 c.LogSqlInConsole = true;
@@ -55,16 +58,13 @@ namespace LocalizationWithCaching.Mapper
                     x.Provider<NHibernate.Caches.SysCache.SysCacheProvider>();
 
                     // http://stackoverflow.com/questions/2365234/how-does-query-caching-improves-performance-in-nhibernate
-                    
-                    // Need to be explicitly turned on so the .Cacheable directive on Linq will work
 
-                    
-
+                    // Need to be explicitly turned on so the .Cacheable directive on Linq will work:                    
                     x.UseQueryCache = true;
                 });
-            
-            
-            
+
+
+
 
             HbmMapping domainMapping = mapper.CompileMappingForAllExplicitlyAddedEntities();
 
@@ -74,18 +74,17 @@ namespace LocalizationWithCaching.Mapper
             var filterDef =
                 new FilterDefinition(
                     "lf", null,
-                    new Dictionary<string, NHibernate.Type.IType> { { "LanguageCode", NHibernateUtil.String } }, useManyToOne: false);
+                    new Dictionary<string, NHibernate.Type.IType> 
+                    { 
+                        { "LanguageCode", NHibernateUtil.String }                        
+                    }, useManyToOne: false);
 
-                        cfg.AddFilterDefinition(filterDef);
+            cfg.AddFilterDefinition(filterDef);
 
+      
 
-
-            
 
             _sessionFactory = cfg.BuildSessionFactory();
-
-
-
 
             return _sessionFactory;
         }

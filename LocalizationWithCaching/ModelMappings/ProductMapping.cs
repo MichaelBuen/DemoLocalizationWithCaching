@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Web;
-using NHibernate.Mapping.ByCode.Conformist;
-using LocalizationWithCaching.Models;
+﻿using NHibernate.Mapping.ByCode.Conformist;
 using NHibernate.Mapping.ByCode;
+
+using LocalizationWithCaching.Models;
 
 namespace LocalizationWithCaching.ModelMappings
 {

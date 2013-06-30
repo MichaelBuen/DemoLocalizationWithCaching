@@ -28,63 +28,90 @@ namespace LocalizationWithCaching.Controllers
         
         void TestCachingSecond()
         {
-            TestQueryCache("en"); // database hit
-            TestQueryCache("zh"); // database hit
-            TestQueryCache("en"); // cached query hit
-            TestQueryCache("zh"); // cached query hit
-            TestQueryCache("ca"); // database hit
+            TestProductAndLanguageQueryCache("en"); // database hit
+            TestProductAndLanguageQueryCache("zh"); // database hit
+            TestProductAndLanguageQueryCache("en"); // cached query hit
+            TestProductAndLanguageQueryCache("zh"); // cached query hit
+            TestProductAndLanguageQueryCache("ca"); // database hit
             
-            TestTvfCache("en"); // database hit
-            TestTvfCache("en"); // cached query hit
-            TestTvfCache("zh"); // database hit
-            TestTvfCache("zh"); // cached query hit
-            
-            TestTvfCache("en"); // cached query hit
-            UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache
-            TestTvfCache("en"); // database hit
-            TestTvfCache("en"); // cached query hit
-            UpdateProductLanguage(productId: 1, languageCode: "zh"); // database hit. refresh entity cache
-            TestTvfCache("en"); // database hit
-            TestTvfCache("en"); // cached query hit
+
+            TestTvfGetOrderInfoQueryCache("en"); // database hit
+            TestTvfGetOrderInfoQueryCache("en"); // cached query hit
+            TestTvfGetOrderInfoQueryCache("zh"); // database hit
+            TestTvfGetOrderInfoQueryCache("zh"); // cached query hit
+
+                        
+            TestTvfGetOrderInfoQueryCache("en"); // cached query hit
+            UpdateProduct(productId: 1, languageCode: "en"); // cached entity hit on entity get. database hit on update. refresh entity cache. Invalidates GetOrderInfo query cache
+            TestTvfGetOrderInfoQueryCache("en"); // database hit
+            TestTvfGetOrderInfoQueryCache("en"); // cached query hit
+            UpdateProductLanguage(productId: 1, languageCode: "zh"); // cached entity hit on entity get. database hit on update. refresh entity cache. Invalidates GetOrderInfo query cache
+            TestTvfGetOrderInfoQueryCache("en"); // database hit. even we only touch the Chinese language above
+            TestTvfGetOrderInfoQueryCache("en"); // cached query hit
 
 
+
+            TestTvfGetProductSoldQueryCache("en"); // database hit
+            UpdateProduct(productId: 1, languageCode: "en"); // cached entity hit on entity get. database hit on update. refresh entity cache. does not invalidates GetProductSold query cache
+            TestTvfGetProductSoldQueryCache("en"); // was not invalidated. cached query hit. GetProductSold query cache is Synchronized with ordered_product only
+            TestTvfGetProductSoldQueryCache("en"); // cached query hit
+            UpdateProductLanguage(productId: 1, languageCode: "zh"); // cached hit on entity get. database hit on update. refresh entity cache. invalidates GetProductSold query cache as it joins on ProductLanguage entity
+            TestTvfGetProductSoldQueryCache("en"); // cached query was invalidated. database hit
+            TestTvfGetProductSoldQueryCache("en"); // cached query hit
+
+
+            TestTvfGetProductSoldQueryCache("en"); // cached query hit
+            UpdateOrderedProduct(orderedProductId: 1, languageCode: "en"); // database hit on entity get. database hit on update. refresh entity cache. invalidates GetProductSold query cache
+            TestOrderedProductEntityCache(orderedProductId: 1, languageCode: "en"); // cached entity hit on entity get
+            TestTvfGetProductSoldQueryCache("en"); // database hit
+            TestTvfGetProductSoldQueryCache("en"); // cached query hit
+            UpdateOrderedProduct(orderedProductId: 1, languageCode: "zh"); // cached entity hit on entity get. database hit on update. refresh entity cache. invalidates GetProductSold query cache
+            TestTvfGetProductSoldQueryCache("en"); // database hit. even we only touch the Chinese language above
+            TestTvfGetProductSoldQueryCache("en"); // cached query hit
+            UpdateOrderedProduct(orderedProductId: 1, languageCode: "en"); // cached entity hit on entity get. database hit on update. refresh entity cache
+            TestOrderedProductEntityCache(orderedProductId: 1, languageCode: "en"); // cached entity hit on entity get
+            
+
+            
             TestProductEntityCache(productId: 1,languageCode: "en"); // cached entity hit
             TestProductLanguageEntityCache(productId: 1, languageCode: "en"); // cached entity hit
             TestProductEntityCache(productId: 2, languageCode: "zh"); // cached entity hit
             TestProductLanguageEntityCache(productId: 2, languageCode: "en"); // cached entity hit
 
-            UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache
+            UpdateProduct(productId: 1, languageCode: "en"); // cached entity hit on entity get. database hit on update. refresh entity cache
             TestProductEntityCache(productId: 1, languageCode: "en"); // cached entity hit
 
-            UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache. invalidates cached query
-            TestQueryCache("en"); // no cached query. database hit
-            TestQueryCache("en"); // cache query hit
+            UpdateProduct(productId: 1, languageCode: "en"); // cached entity hit on entity get. database hit. refresh entity cache. invalidates cached query
+            TestProductAndLanguageQueryCache("en"); // no cached query. database hit
+            TestProductAndLanguageQueryCache("en"); // cached query hit
 
-            UpdateProduct(productId: 1, languageCode: "en"); // database hit. refresh entity cache. invalidates cached query 
+            UpdateProduct(productId: 1, languageCode: "en"); // cached entity hit on entity get. database hit on update. refresh entity cache. invalidates cached query 
             TestProductEntityCache(productId: 1, languageCode: "en"); // cached entity hit
-            TestQueryCache("en"); // no cached query. database hit
-             
-            
-            // cached entity hit
-            TestProductLanguageEntityCache(productId: 1, languageCode: "ca");
-            
-            // database hit
-            TestProductLanguageEntityCache(productId: 1, languageCode: "es");
+            TestProductAndLanguageQueryCache("en"); // no cached query. database hit
 
-            // cached entity hit
-            TestProductLanguageEntityCache(productId: 1, languageCode: "es");
 
-            // database hit. entity is cached
-            UpdateProductLanguage(productId: 1, languageCode: "es");
-            
-            // cached entity hit
-            TestProductLanguageEntityCache(productId: 1, languageCode: "es");
 
-            
+
+            TestProductLanguageEntityCache(productId: 1, languageCode: "ca"); // cached entity hit
+
+
+            TestProductLanguageEntityCache(productId: 1, languageCode: "es"); // database hit
+
+
+            TestProductLanguageEntityCache(productId: 1, languageCode: "es"); // cached entity hit
+
+
+            UpdateProductLanguage(productId: 1, languageCode: "es"); // cached entity hit on entity get. database hit on update. entity cache is refreshed
+
+
+            TestProductLanguageEntityCache(productId: 1, languageCode: "es"); // cached entity hit
 
         }
 
-        void TestQueryCache(string languageCode)
+
+
+
+        void TestProductAndLanguageQueryCache(string languageCode)
         {
             using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
             using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
@@ -101,7 +128,7 @@ namespace LocalizationWithCaching.Controllers
         }
 
 
-        private void TestTvfCache(string languageCode)
+        private void TestTvfGetOrderInfoQueryCache(string languageCode)
         {
             using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
             using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
@@ -112,19 +139,23 @@ namespace LocalizationWithCaching.Controllers
             }
         }
 
-        private void UpdateProductLanguage(int productId, string languageCode)
+        private void TestTvfGetProductSoldQueryCache(string languageCode)
         {
             using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
-            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode, readOnly: false))
+            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
             {
-                var x = session.Get<ProductLanguage>(new ProductLanguageCompositeKey { ProductId = productId, LanguageCode = languageCode });
-                
-                x.ProductName = string.Concat(x.ProductName.ToCharArray().Reverse());
+                var x = 
+                        (from q in 
+                             from ps in session.Query<GetProductSold>()
+                             join pl in session.Query<ProductLanguage>() on ps.ProductId equals pl.ProductLanguageCompositeKey.ProductId
+                             select new { ps, pl }
+                        where q.pl.ProductLanguageCompositeKey.LanguageCode == languageCode
+                         select q).Cacheable();
 
-                session.Save(x);
-                tx.Commit();
+                var l = x.ToList();
             }
         }
+
 
         private void TestProductLanguageEntityCache(int productId, string languageCode)
         {
@@ -138,12 +169,49 @@ namespace LocalizationWithCaching.Controllers
         private void UpdateProduct(int productId, string languageCode)
         {
             using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
-            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode, readOnly: false))
+            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
             {
                 var x = session.Get<Product>(productId);
                 x.YearIntroduced = x.YearIntroduced + 1;
                 session.Save(x);
                 tx.Commit();
+            }
+        }
+
+        private void UpdateProductLanguage(int productId, string languageCode)
+        {
+            using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
+            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
+            {
+                var x = session.Get<ProductLanguage>(new ProductLanguageCompositeKey { ProductId = productId, LanguageCode = languageCode });
+
+                x.ProductName = string.Concat(x.ProductName.ToCharArray().Reverse());
+                x.ActualLanguageCode = languageCode;
+
+                session.Save(x);
+                tx.Commit();
+            }
+        }
+
+        private void UpdateOrderedProduct(int orderedProductId, string languageCode)
+        {
+            using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
+            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
+            {
+                var x = session.Get<OrderedProduct>(orderedProductId);
+                x.Quantity = x.Quantity + 1;
+                session.Save(x);
+                tx.Commit();
+            }
+        }
+
+
+        private void TestOrderedProductEntityCache(int orderedProductId, string languageCode)
+        {
+            using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
+            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
+            {
+                var x = session.Get<OrderedProduct>(orderedProductId);                
             }
         }
 
@@ -166,8 +234,6 @@ namespace LocalizationWithCaching.Controllers
             }
         }
       
-
-
 
     }//Index
 }

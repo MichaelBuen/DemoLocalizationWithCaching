@@ -115,10 +115,13 @@
     </Compile>
     <Compile Include="Mapper\TheMapper.cs" />
     <Compile Include="ModelMappings\GetOrdersInfoMapping.cs" />
-    <Compile Include="ModelMappings\MappingCommons.cs" />
+    <Compile Include="ModelMappings\GetProductSoldMapping.cs" />
+    <Compile Include="ModelMappings\OrderedProductMapping.cs" />
     <Compile Include="ModelMappings\ProductLanguageMapping.cs" />
     <Compile Include="ModelMappings\ProductMapping.cs" />
     <Compile Include="Models\GetOrdersInfo.cs" />
+    <Compile Include="Models\GetProductSold.cs" />
+    <Compile Include="Models\OrderedProduct.cs" />
     <Compile Include="Models\Product.cs" />
     <Compile Include="Models\ProductLanguage.cs" />
     <Compile Include="NHibernateHelper\TheHelper.cs" />

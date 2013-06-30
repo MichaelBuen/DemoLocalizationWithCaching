@@ -1,28 +1,20 @@
-﻿
-
-
-/*
-	drop function dbo.get_product_i18n;
-	drop function dbo.tvf_get_orders_info; 
-	drop table dbo.ordered_product;
-	drop table dbo.producT_i18n;
-	drop table dbo.product;
-*/
-
-create table dbo.product
+﻿create table dbo.product
 (
-product_id int identity(1,1) primary key,
+product_id int identity(1,1) primary key, -- clustered
 year_introduced int not null,
 );
 
 create table dbo.product_i18n
 (
+product_i18n_id int identity(1,1) primary key,
 product_id int not null,
 language_code nvarchar(6) not null,
 product_name nvarchar(100) not null,
 product_description nvarchar(100) not null,
-constraint pk_product_i18n primary key(product_id, language_code)
+constraint uk_product_i18n unique(product_id, language_code)
 );
+
+-- Why we should use unique key(instead of primary key) on many-to-many fields(uk_product_i18n): http://www.ienablemuch.com/2012/11/page-splitting-with-clustered-composite.html
 
 declare @productId int;
 
@@ -43,7 +35,21 @@ insert into dbo.product_i18n(product_id, language_code, product_name, product_de
 values(@productId, 'en', 'iPhone','First Truly Smartphone');
 
 
+insert into product(year_introduced) 
+values(1964);
+set @productId = SCOPE_IDENTITY();
+insert into dbo.product_i18n(product_id, language_code, product_name, product_description)
+values(@productId, 'ph', 'Sarao', 'World''s Top Jeepney Brand');
 
+
+insert into product(year_introduced) 
+values(1994);
+set @productId = SCOPE_IDENTITY();
+insert into dbo.product_i18n(product_id, language_code, product_name, product_description)
+values(@productId, 'zh', 'Anta', 'China''s Top Shoe Brand');
+
+
+go
 
 create table dbo.ordered_product
 (
@@ -65,27 +71,27 @@ insert into dbo.ordered_product(product_id, ordered_by, date_ordered, qty) value
 go
 
 
-create function dbo.tvf_get_orders_info(@language_code nvarchar(6)) 
+
+
+create function dbo.tvf_get_product_sold() 
 returns table
 as
-
-return 
-	select
-		op.ordered_product_id,
-		op.ordered_by, op.date_ordered, pl.product_name, p.year_introduced, op.qty
-	from dbo.ordered_product op
-	join dbo.get_product_language(@language_code) pl on op.product_id = pl.product_id
-	join dbo.product p on op.product_id = p.product_id 
-
-
+	return
+		select p.product_id, ordered_count = coalesce(sum(o.qty), 0)
+		from dbo.product p			
+		left join dbo.ordered_product o on p.product_id = o.product_id
+		group by p.product_id
 go
 
 
+-- select * from  dbo.tvf_get_product_sold() order by product_id
 
 
 
-CREATE function dbo.get_product_i18n(@x_language_code nvarchar(6))
-returns table --  (product_id int, language_code nvarchar(6), product_name nvarchar(1000), prdouct_description nvarchar(1000))
+
+
+create function dbo.get_product_i18n(@language_code nvarchar(6))
+returns table --  (product_id int, language_code nvarchar(6), product_name nvarchar(1000), product_description nvarchar(1000))
 as
 	return	
 		with a as
@@ -96,20 +102,26 @@ as
 				over(partition by product_id
 				order by
 					case language_code
-					when @x_language_code then 1
+					when @language_code then 1
 					when 'en' then 2
 					else 3
 					end) 
 				as the_rank
 
-				,
-				*
-			from product_i18n -- (forceseek)
+				,* 
+				,actual_language_code = language_code
+
+			from product_i18n 
 		)
 		select 			
-			a.product_id
-			, language_code = @x_language_code
+
+			-- composite key for ORM:
+			a.product_id, language_code = @language_code
+			-- ...composite key
+
 			, a.product_name, a.product_description
+
+			, a.actual_language_code
 		from a 
 		where the_rank = 1;
 
@@ -117,4 +129,17 @@ as
 GO
 
 
+
+
+create function [dbo].[tvf_get_orders_info](@language_code nvarchar(6)) 
+returns table
+as
+	return 
+		select
+			op.ordered_product_id,
+			op.ordered_by, op.date_ordered, pl.product_name, p.year_introduced, op.qty
+		from dbo.ordered_product op
+		join dbo.get_product_i18n(@language_code) pl on op.product_id = pl.product_id
+		join dbo.product p on op.product_id = p.product_id 
+go
 
