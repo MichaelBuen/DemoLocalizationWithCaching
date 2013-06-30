@@ -82,26 +82,31 @@ namespace LocalizationWithCaching.Controllers
             TestProductEntityCache(productId: 1, languageCode: "en"); // cached entity hit
 
             UpdateProduct(productId: 1, languageCode: "en"); // cached entity hit on entity get. database hit. refresh entity cache. invalidates cached query
-            TestProductAndLanguageQueryCache("en"); // no cached query. database hit
+            TestProductAndLanguageQueryCache("en"); // cached query was invalidated. database hit
             TestProductAndLanguageQueryCache("en"); // cached query hit
 
             UpdateProduct(productId: 1, languageCode: "en"); // cached entity hit on entity get. database hit on update. refresh entity cache. invalidates cached query 
             TestProductEntityCache(productId: 1, languageCode: "en"); // cached entity hit
-            TestProductAndLanguageQueryCache("en"); // no cached query. database hit
-
-
-
+            TestProductAndLanguageQueryCache("en"); // cached query was invalidated. database hit
 
             TestProductLanguageEntityCache(productId: 1, languageCode: "ca"); // cached entity hit
 
-
             TestProductLanguageEntityCache(productId: 1, languageCode: "es"); // database hit
-
 
             TestProductLanguageEntityCache(productId: 1, languageCode: "es"); // cached entity hit
 
+            // cached entity hit on entity get. database hit on update. entity cache is refreshed. invalidates *ALL* language version of ProductLanguage query cache
+            UpdateProductLanguage(productId: 1, languageCode: "es");
 
-            UpdateProductLanguage(productId: 1, languageCode: "es"); // cached entity hit on entity get. database hit on update. entity cache is refreshed
+
+            TestProductAndLanguageQueryCache("zh"); // was invalidated. database hit
+            TestProductAndLanguageQueryCache("es"); // was invalidated. database hit
+            TestProductAndLanguageQueryCache("es"); // cached query hit           
+            TestProductAndLanguageQueryCache("en"); // was invalidated. database hit            
+
+            TestProductAndLanguageQueryCache("zh"); // cached query hit
+            TestProductAndLanguageQueryCache("en"); // cached query hit
+
 
 
             TestProductLanguageEntityCache(productId: 1, languageCode: "es"); // cached entity hit
