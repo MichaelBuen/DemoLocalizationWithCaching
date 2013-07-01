@@ -83,11 +83,17 @@ namespace LocalizationWithCaching.Controllers
 
             UpdateProduct(productId: 1, languageCode: "en"); // cached entity hit on entity get. database hit. refresh entity cache. invalidates cached query
             TestProductAndLanguageQueryCache("en"); // cached query was invalidated. database hit
-            TestProductAndLanguageQueryCache("en"); // cached query hit
+            
+            TestProductQueryCache("en"); // cached query was invalidated. database hit
+            TestProductQueryCache("ca"); // cached query was invalidated. database hit
+
+            TestProductQueryCache("en"); // cached query hit
+            TestProductQueryCache("ca"); // cached query hit
 
             UpdateProduct(productId: 1, languageCode: "en"); // cached entity hit on entity get. database hit on update. refresh entity cache. invalidates cached query 
             TestProductEntityCache(productId: 1, languageCode: "en"); // cached entity hit
             TestProductAndLanguageQueryCache("en"); // cached query was invalidated. database hit
+            TestProductAndLanguageQueryCache("ca"); // database hit
 
             TestProductLanguageEntityCache(productId: 1, languageCode: "ca"); // cached entity hit
 
@@ -127,6 +133,21 @@ namespace LocalizationWithCaching.Controllers
                                  join l in session.Query<ProductLanguage>() on p.ProductId equals l.ProductLanguageCompositeKey.ProductId
                                  select new { p, l }                             
                              select q).Cacheable();
+
+                var t = query.ToList();
+            }
+        }
+
+        void TestProductQueryCache(string languageCode)
+        {
+            using (var session = Mapper.TheMapper.GetSessionFactory().OpenSession())
+            using (var tx = session.BeginTransaction().SetLanguage(session, languageCode))
+            {
+                var query =
+
+                            (from p in session.Query<Product>()         
+                             select p).Cacheable();
+                             
 
                 var t = query.ToList();
             }
