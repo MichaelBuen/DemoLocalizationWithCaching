@@ -175,8 +175,12 @@ namespace LocalizationWithCaching.Controllers
                              from ps in session.Query<GetProductSold>()
                              join pl in session.Query<ProductLanguage>() on ps.ProductId equals pl.ProductLanguageCompositeKey.ProductId
                              select new { ps, pl }
-                        where q.pl.ProductLanguageCompositeKey.LanguageCode == languageCode
+                         where q.pl.ProductLanguageCompositeKey.LanguageCode == languageCode
                          select q).Cacheable();
+
+
+                // Rationale for Cacheable at the end:
+                // http://www.ienablemuch.com/2013/06/nhibernate-query-caching.html
 
                 var l = x.ToList();
             }
